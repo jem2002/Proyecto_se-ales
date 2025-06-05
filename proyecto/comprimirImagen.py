@@ -1,8 +1,12 @@
 from PIL import Image, ImageTk
-import tkinter as tk
+import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import numpy as np
 import sys
+
+# Configurar apariencia de CustomTkinter
+ctk.set_appearance_mode("dark")  # Modos: "dark", "light"
+ctk.set_default_color_theme("blue")  # Temas: "blue", "green", "dark-blue"
 
 # Verificar dependencias
 def check_dependencies():
@@ -149,8 +153,9 @@ def select_and_compress_image():
 
 def display_images(original, compressed):
     # Crear una nueva ventana para mostrar las imágenes
-    display_window = tk.Toplevel()
+    display_window = ctk.CTkToplevel()
     display_window.title("Comparación de Imágenes")
+    display_window.geometry("900x500")
     
     # Redimensionar imágenes para visualización
     max_size = (400, 400)
@@ -164,20 +169,22 @@ def display_images(original, compressed):
     compressed_tk = ImageTk.PhotoImage(compressed_resized)
     
     # Mostrar imágenes
-    frame = tk.Frame(display_window)
-    frame.pack(padx=10, pady=10)
+    frame = ctk.CTkFrame(display_window, corner_radius=15)
+    frame.pack(padx=20, pady=20, fill="both", expand=True)
     
     # Imagen original
-    original_frame = tk.Frame(frame)
-    original_frame.pack(side=tk.LEFT, padx=10)
-    tk.Label(original_frame, text="Imagen Original").pack()
-    tk.Label(original_frame, image=original_tk).pack()
+    original_frame = ctk.CTkFrame(frame, corner_radius=10)
+    original_frame.pack(side="left", padx=20, pady=20, fill="both", expand=True)
+    ctk.CTkLabel(original_frame, text="Imagen Original", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
+    original_label = ctk.CTkLabel(original_frame, image=original_tk, text="")
+    original_label.pack(pady=10)
     
     # Imagen comprimida
-    compressed_frame = tk.Frame(frame)
-    compressed_frame.pack(side=tk.RIGHT, padx=10)
-    tk.Label(compressed_frame, text="Imagen Comprimida (80%)").pack()
-    tk.Label(compressed_frame, image=compressed_tk).pack()
+    compressed_frame = ctk.CTkFrame(frame, corner_radius=10)
+    compressed_frame.pack(side="right", padx=20, pady=20, fill="both", expand=True)
+    ctk.CTkLabel(compressed_frame, text="Imagen Comprimida (80%)", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
+    compressed_label = ctk.CTkLabel(compressed_frame, image=compressed_tk, text="")
+    compressed_label.pack(pady=10)
     
     # Mantener referencia a las imágenes
     display_window.original_tk = original_tk
@@ -190,17 +197,59 @@ def main():
         return
         
     # Configurar ventana principal
-    root = tk.Tk()
+    root = ctk.CTk()
     root.title("Compresor de Imágenes - 80%")
-    root.geometry("400x200")
+    root.geometry("500x350")
+    root.resizable(False, False)
+    
+    # Frame principal con padding
+    main_frame = ctk.CTkFrame(root, corner_radius=20)
+    main_frame.pack(padx=20, pady=20, fill="both", expand=True)
+    
+    # Título principal
+    ctk.CTkLabel(
+        main_frame, 
+        text="Compresor de Imágenes", 
+        font=ctk.CTkFont(size=24, weight="bold")
+    ).pack(pady=(20, 5))
+    
+    # Subtítulo
+    ctk.CTkLabel(
+        main_frame,
+        text="Usando Transformada Discreta del Coseno (DCT)",
+        font=ctk.CTkFont(size=14),
+        text_color=("gray70", "gray30")
+    ).pack(pady=(0, 20))
     
     # Instrucciones
-    tk.Label(root, text="Compresor de Imágenes usando DCT", font=("Arial", 14)).pack(pady=10)
-    tk.Label(root, text="Seleccione una imagen para comprimir al 80%").pack(pady=5)
+    instructions_frame = ctk.CTkFrame(main_frame, corner_radius=10)
+    instructions_frame.pack(padx=20, pady=10, fill="x")
+    
+    ctk.CTkLabel(
+        instructions_frame,
+        text="Seleccione una imagen para comprimir al 80%",
+        font=ctk.CTkFont(size=14)
+    ).pack(pady=15)
     
     # Botón para seleccionar imagen
-    tk.Button(root, text="Seleccionar Imagen", command=select_and_compress_image, 
-              font=("Arial", 12), bg="lightblue").pack(pady=20)
+    ctk.CTkButton(
+        main_frame, 
+        text="Seleccionar Imagen", 
+        command=select_and_compress_image,
+        font=ctk.CTkFont(size=16, weight="bold"),
+        height=50,
+        corner_radius=10,
+        fg_color="#3498DB",
+        hover_color="#2980B9"
+    ).pack(pady=30)
+    
+    # Información adicional
+    ctk.CTkLabel(
+        main_frame,
+        text="💡 La imagen comprimida se guardará en la ubicación que elija",
+        font=ctk.CTkFont(size=12),
+        text_color=("gray60", "gray40")
+    ).pack(pady=(10, 0))
     
     root.mainloop()
 

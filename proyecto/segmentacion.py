@@ -1,8 +1,12 @@
-import tkinter as tk
+import customtkinter as ctk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import sys
 import numpy as np
+
+# Configurar apariencia de CustomTkinter
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 # Verificar dependencias
 def check_dependencies():
@@ -138,9 +142,9 @@ def display_images(original, segmented):
     segmented_tk = ImageTk.PhotoImage(segmented_resized)
 
     # Actualizar las etiquetas con las imágenes
-    original_label.config(image=original_tk)
+    original_label.configure(image=original_tk)
     original_label.image = original_tk
-    segmented_label.config(image=segmented_tk)
+    segmented_label.configure(image=segmented_tk)
     segmented_label.image = segmented_tk
 
 
@@ -157,35 +161,82 @@ def main():
     # Configuración de la ventana principal
     global original_label, segmented_label
     
-    root = tk.Tk()
+    root = ctk.CTk()
     root.title("Segmentación Semántica")
-    root.geometry("650x400")
+    root.geometry("750x650")
+    root.resizable(False, False)
+    
+    # Frame principal con padding
+    main_frame = ctk.CTkFrame(root, corner_radius=20)
+    main_frame.pack(padx=20, pady=20, fill="both", expand=True)
+    
+    # Título principal
+    title_label = ctk.CTkLabel(
+        main_frame, 
+        text="Segmentación Semántica", 
+        font=ctk.CTkFont(size=24, weight="bold")
+    )
+    title_label.pack(pady=(20, 5))
+    
+    # Subtítulo
+    subtitle_label = ctk.CTkLabel(
+        main_frame,
+        text="Identifica y separa objetos en la imagen",
+        font=ctk.CTkFont(size=14),
+        text_color=("gray70", "gray30")
+    )
+    subtitle_label.pack(pady=(0, 20))
 
     # Instrucciones
-    instructions = tk.Label(root, text="Seleccione una imagen para realizar segmentación semántica", font=("Arial", 12))
-    instructions.pack(pady=10)
+    instructions_frame = ctk.CTkFrame(main_frame, corner_radius=10)
+    instructions_frame.pack(padx=20, pady=10, fill="x")
+    
+    instructions = ctk.CTkLabel(
+        instructions_frame, 
+        text="Seleccione una imagen para realizar segmentación semántica", 
+        font=ctk.CTkFont(size=14)
+    )
+    instructions.pack(pady=15)
 
     # Botón para seleccionar la imagen
-    select_button = tk.Button(root, text="Seleccionar Imagen", command=lambda: select_image(model), font=("Arial", 12), bg="lightblue")
-    select_button.pack(pady=10)
+    select_button = ctk.CTkButton(
+        main_frame, 
+        text="Seleccionar Imagen", 
+        command=lambda: select_image(model), 
+        font=ctk.CTkFont(size=16, weight="bold"),
+        height=40,
+        corner_radius=10,
+        fg_color="#3498DB",
+        hover_color="#2980B9"
+    )
+    select_button.pack(pady=20)
 
     # Contenedores para mostrar las imágenes
-    frame_images = tk.Frame(root)
-    frame_images.pack(pady=10)
+    frame_images = ctk.CTkFrame(main_frame, corner_radius=15)
+    frame_images.pack(pady=20, fill="both", expand=True)
 
     # Imagen original
-    original_frame = tk.Frame(frame_images)
-    original_frame.pack(side=tk.LEFT, padx=10)
-    tk.Label(original_frame, text="Imagen Original").pack()
-    original_label = tk.Label(original_frame)
-    original_label.pack()
+    original_frame = ctk.CTkFrame(frame_images, corner_radius=10)
+    original_frame.pack(side="left", padx=20, pady=20, fill="both", expand=True)
+    ctk.CTkLabel(original_frame, text="Imagen Original", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
+    original_label = ctk.CTkLabel(original_frame, text="")
+    original_label.pack(pady=10)
 
     # Imagen segmentada
-    segmented_frame = tk.Frame(frame_images)
-    segmented_frame.pack(side=tk.RIGHT, padx=10)
-    tk.Label(segmented_frame, text="Imagen Segmentada").pack()
-    segmented_label = tk.Label(segmented_frame)
-    segmented_label.pack()
+    segmented_frame = ctk.CTkFrame(frame_images, corner_radius=10)
+    segmented_frame.pack(side="right", padx=20, pady=20, fill="both", expand=True)
+    ctk.CTkLabel(segmented_frame, text="Imagen Segmentada", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
+    segmented_label = ctk.CTkLabel(segmented_frame, text="")
+    segmented_label.pack(pady=10)
+    
+    # Información adicional
+    info_label = ctk.CTkLabel(
+        main_frame,
+        text="💡 La segmentación puede tardar unos segundos dependiendo del tamaño de la imagen",
+        font=ctk.CTkFont(size=12),
+        text_color=("gray60", "gray40")
+    )
+    info_label.pack(pady=(0, 10))
 
     root.mainloop()
 

@@ -1,8 +1,12 @@
-import tkinter as tk
+import customtkinter as ctk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import sys
 import numpy as np
+
+# Configurar apariencia de CustomTkinter
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 # Verificar dependencias
 def check_dependencies():
@@ -87,7 +91,7 @@ def upload_image():
         image = Image.open(file_path)
         image = image.resize((300, 300), Image.Resampling.LANCZOS)  # Usar LANCZOS en lugar de BILINEAR
         photo = ImageTk.PhotoImage(image)
-        image_label.config(image=photo)
+        image_label.configure(image=photo)
         image_label.image = photo
         
         # Guardar la ruta de la imagen para el botón de detección
@@ -95,7 +99,7 @@ def upload_image():
         current_image_path = file_path
         
         # Habilitar el botón de detección
-        detect_button.config(state=tk.NORMAL)
+        detect_button.configure(state="normal")
     
     except Exception as e:
         messagebox.showerror("Error", f"Error al cargar la imagen: {e}")
@@ -110,27 +114,86 @@ def main():
     current_image_path = None
     
     # Configurar ventana principal
-    root = tk.Tk()
+    root = ctk.CTk()
     root.title("Detector de Triángulos")
-    root.geometry("400x450")
+    root.geometry("500x600")
+    root.resizable(False, False)
+    
+    # Frame principal con padding
+    main_frame = ctk.CTkFrame(root, corner_radius=20)
+    main_frame.pack(padx=20, pady=20, fill="both", expand=True)
+    
+    # Título principal
+    title_label = ctk.CTkLabel(
+        main_frame, 
+        text="Detector de Triángulos", 
+        font=ctk.CTkFont(size=24, weight="bold")
+    )
+    title_label.pack(pady=(20, 5))
+    
+    # Subtítulo
+    subtitle_label = ctk.CTkLabel(
+        main_frame,
+        text="Identifica y cuenta triángulos en imágenes",
+        font=ctk.CTkFont(size=14),
+        text_color=("gray70", "gray30")
+    )
+    subtitle_label.pack(pady=(0, 20))
     
     # Instrucciones
-    instructions = tk.Label(root, text="Seleccione una imagen para detectar triángulos", font=("Arial", 12))
-    instructions.pack(pady=10)
+    instructions_frame = ctk.CTkFrame(main_frame, corner_radius=10)
+    instructions_frame.pack(padx=20, pady=10, fill="x")
+    
+    instructions = ctk.CTkLabel(
+        instructions_frame, 
+        text="Seleccione una imagen para detectar triángulos", 
+        font=ctk.CTkFont(size=14)
+    )
+    instructions.pack(pady=15)
     
     # Botón para seleccionar imagen
-    select_button = tk.Button(root, text="Seleccionar Imagen", command=upload_image, 
-                             font=("Arial", 12), bg="lightblue")
-    select_button.pack(pady=10)
+    select_button = ctk.CTkButton(
+        main_frame, 
+        text="Seleccionar Imagen", 
+        command=upload_image, 
+        font=ctk.CTkFont(size=16, weight="bold"),
+        height=40,
+        corner_radius=10,
+        fg_color="#3498DB",
+        hover_color="#2980B9"
+    )
+    select_button.pack(pady=20)
+    
+    # Frame para la imagen
+    image_frame = ctk.CTkFrame(main_frame, corner_radius=10)
+    image_frame.pack(pady=10, fill="both", expand=True)
     
     # Etiqueta para mostrar la imagen
-    image_label = tk.Label(root)
-    image_label.pack(pady=10)
+    image_label = ctk.CTkLabel(image_frame, text="")
+    image_label.pack(pady=20)
     
     # Botón para detectar triángulos
-    detect_button = tk.Button(root, text="Detectar Triángulos", command=lambda: detect_triangles(current_image_path), 
-                             font=("Arial", 12), bg="lightgreen", state=tk.DISABLED)
-    detect_button.pack(pady=10)
+    detect_button = ctk.CTkButton(
+        main_frame, 
+        text="Detectar Triángulos", 
+        command=lambda: detect_triangles(current_image_path), 
+        font=ctk.CTkFont(size=16, weight="bold"),
+        height=40,
+        corner_radius=10,
+        fg_color="#2ECC71",
+        hover_color="#27AE60",
+        state="disabled"
+    )
+    detect_button.pack(pady=20)
+    
+    # Información adicional
+    info_label = ctk.CTkLabel(
+        main_frame,
+        text="💡 Para mejores resultados, use imágenes con bordes bien definidos",
+        font=ctk.CTkFont(size=12),
+        text_color=("gray60", "gray40")
+    )
+    info_label.pack(pady=(0, 10))
     
     root.mainloop()
 

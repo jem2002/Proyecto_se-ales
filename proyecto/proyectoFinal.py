@@ -5,10 +5,13 @@ from scipy.io import wavfile
 import struct
 import math
 import json
-import tkinter as tk
+import customtkinter as ctk
 from tkinter import messagebox
 import subprocess
 import sys
+
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 # Verificar dependencias
 def check_dependencies():
@@ -206,31 +209,31 @@ def find_command(audio_path, reference_vectors, fs, bw_start, bw_end, num_bands)
 def process_voice_command():
     global label_status
     if not record_audio(audio_path, 2, fs):
-        label_status.config(text="Error al grabar audio. Intente nuevamente.")
+        label_status.configure(text="Error al grabar audio. Intente nuevamente.")
         return
         
     command = find_command(audio_path, vector_referencias, fs, bw_start, bw_end, num_bands)
 
     if command == "80":
-        label_status.config(text="Comando '80' ejecutado: Programa para comprimir al 80%.")
+        label_status.configure(text="Comando '80' ejecutado: Programa para comprimir al 80%.")
         try:
             subprocess.run([sys.executable, os.path.join(current_dir, "comprimirImagen.py")])
         except Exception as e:
-            label_status.config(text=f"Error al ejecutar comprimirImagen.py: {e}")
+            label_status.configure(text=f"Error al ejecutar comprimirImagen.py: {e}")
     elif command == "dibujo":
-        label_status.config(text="Comando 'Dibujo' ejecutado: Programa para señalar dibujos.")
+        label_status.configure(text="Comando 'Dibujo' ejecutado: Programa para señalar dibujos.")
         try:
             subprocess.run([sys.executable, os.path.join(current_dir, "identificadorDibujo", "contar_triangulos.py")])
         except Exception as e:
-            label_status.config(text=f"Error al ejecutar contar_triangulos.py: {e}")
+            label_status.configure(text=f"Error al ejecutar contar_triangulos.py: {e}")
     elif command == "segmentación":
-        label_status.config(text="Comando 'Segmentación' ejecutando: Programa para segmentar imagenes.")
+        label_status.configure(text="Comando 'Segmentación' ejecutando: Programa para segmentar imagenes.")
         try:
             subprocess.run([sys.executable, os.path.join(current_dir, "segmentacion.py")])
         except Exception as e:
-            label_status.config(text=f"Error al ejecutar segmentacion.py: {e}")
+            label_status.configure(text=f"Error al ejecutar segmentacion.py: {e}")
     else:
-        label_status.config(text=f"Comando no reconocido: {command}. Intenta nuevamente.")
+        label_status.configure(text=f"Comando no reconocido: {command}. Intenta nuevamente.")
 
 # Función principal
 def main():
@@ -240,28 +243,116 @@ def main():
     check_dependencies()
     
     # Crear la ventana principal
-    window = tk.Tk()
-    window.title("Reconocimiento de Voz")
-    window.geometry("600x400")
-
-    # Mensaje de instrucciones
-    instructions = """
-Reconocimiento de voz:
-1. Di "80" para procesar una imagen al 80%
-2. Di "Dibujo" para contar la cantidad de dibujos repetidos
-3. Di "Segmentación" para segmentar la imagen
-"""
-    label_instructions = tk.Label(window, text=instructions, justify="left", font=("Arial", 12))
-    label_instructions.pack(pady=20)
-
-    # Botón para activar los comandos
-    btn_activate = tk.Button(window, text="Activar Comandos", command=process_voice_command, font=("Arial", 14), bg="lightblue")
-    btn_activate.pack(pady=20)
-
+    window = ctk.CTk()
+    window.title("🎤 Reconocimiento de Voz Inteligente")
+    window.geometry("700x600")  # Aumentar el tamaño vertical de la ventana
+    window.resizable(True, True)  # Permitir redimensionar la ventana
+    
+    # Configurar el grid
+    window.grid_columnconfigure(0, weight=1)
+    window.grid_rowconfigure(0, weight=1)
+    
+    # Frame principal con padding
+    main_frame = ctk.CTkFrame(window, corner_radius=20)
+    main_frame.grid(row=0, column=0, padx=30, pady=30, sticky="nsew")
+    main_frame.grid_columnconfigure(0, weight=1)
+    
+    # Título principal
+    title_label = ctk.CTkLabel(
+        main_frame, 
+        text="🎤 Reconocimiento de Voz",
+        font=ctk.CTkFont(size=28, weight="bold")
+    )
+    title_label.grid(row=0, column=0, pady=(30, 20))
+    
+    # Subtítulo
+    subtitle_label = ctk.CTkLabel(
+        main_frame,
+        text="Controla la aplicación con comandos de voz",
+        font=ctk.CTkFont(size=16),
+        text_color=("gray70", "gray30")
+    )
+    subtitle_label.grid(row=1, column=0, pady=(0, 30))
+    
+    # Frame de instrucciones
+    instructions_frame = ctk.CTkFrame(main_frame, corner_radius=15)
+    instructions_frame.grid(row=2, column=0, padx=20, pady=20, sticky="ew")
+    
+    instructions_title = ctk.CTkLabel(
+        instructions_frame,
+        text="📋 Comandos Disponibles",
+        font=ctk.CTkFont(size=18, weight="bold")
+    )
+    instructions_title.pack(pady=(20, 10))
+    
+    # Lista de comandos con iconos
+    commands = [
+        ("🔢", "'80'", "Comprimir imagen al 80%"),
+        ("🎨", "'Dibujo'", "Detectar y contar figuras"),
+        ("✂️", "'Segmentación'", "Segmentar imágenes")
+    ]
+    
+    for icon, command, description in commands:
+        command_frame = ctk.CTkFrame(instructions_frame, fg_color="transparent")
+        command_frame.pack(fill="x", padx=20, pady=5)
+        
+        command_text = ctk.CTkLabel(
+            command_frame,
+            text=f"{icon} Di {command} para {description}",
+            font=ctk.CTkFont(size=14),
+            anchor="w"
+        )
+        command_text.pack(side="left", padx=10, pady=5)
+    
+    # Espaciador
+    ctk.CTkLabel(instructions_frame, text="").pack(pady=10)
+    
+    # Botón principal de activación
+    btn_activate = ctk.CTkButton(
+        main_frame,
+        text="🎙️ GRABAR VOZ",
+        command=process_voice_command,
+        font=ctk.CTkFont(size=20, weight="bold"),
+        height=60,
+        width=300,
+        corner_radius=10,
+        fg_color="#E74C3C",
+        hover_color="#C0392B",
+        border_width=2,
+        border_color="#ECF0F1"
+    )
+    btn_activate.grid(row=3, column=0, pady=40)
+    
+    # Frame de estado
+    status_frame = ctk.CTkFrame(main_frame, corner_radius=15)
+    status_frame.grid(row=4, column=0, padx=20, pady=(0, 20), sticky="ew")
+    
+    status_title = ctk.CTkLabel(
+        status_frame,
+        text="📊 Estado del Sistema",
+        font=ctk.CTkFont(size=16, weight="bold")
+    )
+    status_title.pack(pady=(15, 5))
+    
     # Etiqueta para el estado del comando
-    label_status = tk.Label(window, text="", font=("Arial", 12), fg="green")
-    label_status.pack(pady=10)
-
+    label_status = ctk.CTkLabel(
+        status_frame,
+        text="Listo para recibir comandos de voz",
+        font=ctk.CTkFont(size=14),
+        text_color=("#2CC985", "#2FA572"),
+        wraplength=500
+    )
+    label_status.pack(pady=(5, 20))
+    
+    # Información adicional en la parte inferior
+    info_label = ctk.CTkLabel(
+        main_frame,
+        text="💡 Tip: Habla claro y espera a que termine la grabación",
+        font=ctk.CTkFont(size=12),
+        text_color=("gray60", "gray40")
+    )
+    info_label.grid(row=5, column=0, pady=(0, 20))
+    
     # Ejecutar la ventana principal
     window.mainloop()
 
