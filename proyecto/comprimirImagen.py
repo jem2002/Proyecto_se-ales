@@ -4,11 +4,9 @@ from tkinter import filedialog, messagebox
 import numpy as np
 import sys
 
-# Configurar apariencia de CustomTkinter
-ctk.set_appearance_mode("dark")  # Modos: "dark", "light"
-ctk.set_default_color_theme("blue")  # Temas: "blue", "green", "dark-blue"
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
-# Verificar dependencias
 def check_dependencies():
     missing_deps = []
     try:
@@ -34,29 +32,21 @@ def check_dependencies():
             return False
     return True
 
-# Parámetros de la compresión
-block_size_image = 16  # Tamaño del bloque para DCT
-compression_rate = 0.2  # Mantener solo el 20% de las frecuencias más significativas
+block_size_image = 16
+compression_rate = 0.2
 
 
 def compress_image_to_80(image_obj):
-    """
-    Comprimir una imagen utilizando DCT manteniendo el 80% de compresión.
-    :param image_obj: Objeto PIL.Image.Image de entrada.
-    :return: Imagen comprimida en formato PIL.Image.Image.
-    """
     if not isinstance(image_obj, Image.Image):
         raise TypeError("El parámetro debe ser un objeto de tipo PIL.Image.Image")
     
     try:
         import cv2
-        # Convertir imagen de PIL a formato numpy (RGB)
         image = np.array(image_obj)
         
         def dct_compress_blocks(img, compression_rate):
             h, w = img.shape
 
-            # Ajustar dimensiones al múltiplo más cercano del tamaño de bloque
             new_h = h + (block_size_image - h % block_size_image) if h % block_size_image != 0 else h
             new_w = w + (block_size_image - w % block_size_image) if w % block_size_image != 0 else w
             padded_img = np.zeros((new_h, new_w), dtype=np.float32)
@@ -67,7 +57,7 @@ def compress_image_to_80(image_obj):
             for i in range(0, new_h, block_size_image):
                 for j in range(0, new_w, block_size_image):
                     block = padded_img[i:i+block_size_image, j:j+block_size_image]
-                    dct_block = cv2.dct(block)  # Aplicar DCT
+                    dct_block = cv2.dct(block)
                     mask = np.zeros((block_size_image, block_size_image), dtype=np.float32)
                     keep_size = int(block_size_image * compression_rate)
                     mask[:keep_size, :keep_size] = 1
@@ -83,7 +73,7 @@ def compress_image_to_80(image_obj):
             for i in range(0, new_h, block_size_image):
                 for j in range(0, new_w, block_size_image):
                     dct_block = compressed_img[i:i+block_size_image, j:j+block_size_image]
-                    block = cv2.idct(dct_block)  # Aplicar IDCT
+                    block = cv2.idct(dct_block)
                     decompressed_img[i:i+block_size_image, j:j+block_size_image] = block
 
             h, w = original_shape
@@ -94,7 +84,7 @@ def compress_image_to_80(image_obj):
             compressed_img = []
             shapes = []
 
-            for channel in range(c):  # Procesar cada canal
+            for channel in range(c):
                 compressed_channel, shape = dct_compress_blocks(img[:, :, channel], compression_rate)
                 compressed_img.append(compressed_channel)
                 shapes.append(shape)
@@ -111,38 +101,29 @@ def compress_image_to_80(image_obj):
 
             return np.stack(decompressed_img, axis=-1)
 
-        # Convertir a flotante para la DCT
         img_array = image.astype(np.float32)
 
-        # Comprimir y descomprimir la imagen
         compressed_image, shapes = dct_compress_rgb(img_array, compression_rate)
         decompressed_image = np.clip(dct_decompress_rgb(compressed_image, shapes), 0, 255).astype(np.uint8)
 
-        # Convertir de nuevo a objeto PIL.Image
         return Image.fromarray(decompressed_image)
     except Exception as e:
         messagebox.showerror("Error", f"Error al comprimir la imagen: {e}")
-        return image_obj  # Devolver la imagen original en caso de error
+        return image_obj
 
 
-# ===== Tkinter GUI =====
 def select_and_compress_image():
-    # Seleccionar imagen
     file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")])
     if not file_path:
         return
     
     try:
-        # Cargar la imagen original
         original_image = Image.open(file_path)
         
-        # Comprimir la imagen
         compressed_image = compress_image_to_80(original_image)
         
-        # Mostrar ambas imágenes
         display_images(original_image, compressed_image)
         
-        # Guardar la imagen comprimida
         save_path = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG files", "*.jpg")])
         if save_path:
             compressed_image.save(save_path, "JPEG")
@@ -152,68 +133,56 @@ def select_and_compress_image():
 
 
 def display_images(original, compressed):
-    # Crear una nueva ventana para mostrar las imágenes
     display_window = ctk.CTkToplevel()
     display_window.title("Comparación de Imágenes")
     display_window.geometry("900x500")
     
-    # Redimensionar imágenes para visualización
     max_size = (400, 400)
     original_resized = original.copy()
     original_resized.thumbnail(max_size)
     compressed_resized = compressed.copy()
     compressed_resized.thumbnail(max_size)
     
-    # Convertir a formato Tkinter
     original_tk = ImageTk.PhotoImage(original_resized)
     compressed_tk = ImageTk.PhotoImage(compressed_resized)
     
-    # Mostrar imágenes
     frame = ctk.CTkFrame(display_window, corner_radius=15)
     frame.pack(padx=20, pady=20, fill="both", expand=True)
     
-    # Imagen original
     original_frame = ctk.CTkFrame(frame, corner_radius=10)
     original_frame.pack(side="left", padx=20, pady=20, fill="both", expand=True)
     ctk.CTkLabel(original_frame, text="Imagen Original", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
     original_label = ctk.CTkLabel(original_frame, image=original_tk, text="")
     original_label.pack(pady=10)
     
-    # Imagen comprimida
     compressed_frame = ctk.CTkFrame(frame, corner_radius=10)
     compressed_frame.pack(side="right", padx=20, pady=20, fill="both", expand=True)
     ctk.CTkLabel(compressed_frame, text="Imagen Comprimida (80%)", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
     compressed_label = ctk.CTkLabel(compressed_frame, image=compressed_tk, text="")
     compressed_label.pack(pady=10)
     
-    # Mantener referencia a las imágenes
     display_window.original_tk = original_tk
     display_window.compressed_tk = compressed_tk
 
 
 def main():
-    # Verificar dependencias
     if not check_dependencies():
         return
         
-    # Configurar ventana principal
     root = ctk.CTk()
     root.title("Compresor de Imágenes - 80%")
     root.geometry("500x350")
     root.resizable(False, False)
     
-    # Frame principal con padding
     main_frame = ctk.CTkFrame(root, corner_radius=20)
     main_frame.pack(padx=20, pady=20, fill="both", expand=True)
     
-    # Título principal
     ctk.CTkLabel(
         main_frame, 
         text="Compresor de Imágenes", 
         font=ctk.CTkFont(size=24, weight="bold")
     ).pack(pady=(20, 5))
     
-    # Subtítulo
     ctk.CTkLabel(
         main_frame,
         text="Usando Transformada Discreta del Coseno (DCT)",
@@ -221,7 +190,6 @@ def main():
         text_color=("gray70", "gray30")
     ).pack(pady=(0, 20))
     
-    # Instrucciones
     instructions_frame = ctk.CTkFrame(main_frame, corner_radius=10)
     instructions_frame.pack(padx=20, pady=10, fill="x")
     
@@ -231,7 +199,6 @@ def main():
         font=ctk.CTkFont(size=14)
     ).pack(pady=15)
     
-    # Botón para seleccionar imagen
     ctk.CTkButton(
         main_frame, 
         text="Seleccionar Imagen", 
@@ -243,7 +210,6 @@ def main():
         hover_color="#2980B9"
     ).pack(pady=30)
     
-    # Información adicional
     ctk.CTkLabel(
         main_frame,
         text="💡 La imagen comprimida se guardará en la ubicación que elija",

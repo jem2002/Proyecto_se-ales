@@ -4,11 +4,11 @@ import numpy as np
 import struct
 from scipy.io import wavfile
 
-vector_referencias = load_reference_vectors("C:/Users/nicol/Downloads/proyecto (2)/proyecto/reference_vectors.json")
+vector_referencias = load_reference_vectors("C:\Users\joshu\OneDrive\Escritorio\proyecto (2)\proyecto\reference_vectors.json")
 
-fs = 44100  # Frecuencia de muestreo (puedes ajustar según tu audio)
-bw_start = 300  # Inicio del ancho de banda
-bw_end = 3400  # Fin del ancho de banda (Nyquist para fs=44100)
+fs = 44100
+bw_start = 300
+bw_end = 3400
 num_bands = 4
 
 def calculate_coefficients(f1, f2, fs):
@@ -28,20 +28,16 @@ def calculate_coefficients(f1, f2, fs):
     return b, a
 
 def apply_filter(frames, b, a, chunk_size):
-    x1, x2 = 0, 0  # Entradas pasadas
-    y1, y2 = 0, 0  # Salidas pasadas
+    x1, x2 = 0, 0
+    y1, y2 = 0, 0
     filtered_frames = []
 
     for frame in frames:
         for i in range(0, len(frame), chunk_size * 2):
             chunk = frame[i:i + chunk_size * 2]
-            
-            # Convertir a binario si es necesario y rellenar con ceros
             chunk = bytes(chunk) if isinstance(chunk, np.ndarray) else chunk
             if len(chunk) < chunk_size * 2:
                 chunk += b'\x00' * (chunk_size * 2 - len(chunk))
-
-            # Desempaquetar datos
             samples = struct.unpack(f'{len(chunk)//2}h', chunk)
             filtered_chunk = b''
 
@@ -66,14 +62,9 @@ def calculate_band_energies(signal, fs, bw_start, bw_end, num_bands):
         band_start = bw_start + i * band_width
         band_end = band_start + band_width
 
-        # Máscara para la banda actual
         band_mask = (freqs >= band_start) & (freqs < band_end)
-        
-        # Filtrar el espectro
         filtered_spectrum = np.zeros_like(spectrum)
         filtered_spectrum[band_mask] = spectrum[band_mask]
-        
-        # Transformar de nuevo al tiempo y calcular energía
         filtered_signal = np.fft.ifft(filtered_spectrum).real
         energy = np.sum(filtered_signal**2) / N
         energies.append(energy)
@@ -81,30 +72,19 @@ def calculate_band_energies(signal, fs, bw_start, bw_end, num_bands):
     return energies
 
 def find_command(audio_path, reference_vectors, fs, bw_start, bw_end, num_bands):
-    # Leer el archivo de audio
     fs_audio, audio = wavfile.read(audio_path)
-
-    # Asegúrate de que el audio sea mono
     if len(audio.shape) > 1:
         audio = np.mean(audio, axis=1).astype(np.int16)
     
     b, a = calculate_coefficients(bw_start, bw_end, fs)
     senal_filtrada = apply_filter([audio], b, a, chunk_size=1024)
-    
-    # Convertir audio filtrado a un solo array plano
     senal_filtrada = b''.join(senal_filtrada)
     senal_filtrada = np.frombuffer(senal_filtrada, dtype=np.int16)
-    
-    
-    # Calcular las energías del audio
     audio_energies = calculate_band_energies(senal_filtrada, fs_audio, bw_start, bw_end, num_bands)
-    
-    # Comparar con los vectores de referencia
     min_difference = float('inf')
     detected_command = None
     
     for command, reference_vector in reference_vectors.items():
-        # Calcula la distancia entre el vector de referencia y las energías calculadas
         difference = np.linalg.norm(np.array(reference_vector) - np.array(audio_energies))
         print(difference)
         
@@ -114,9 +94,6 @@ def find_command(audio_path, reference_vectors, fs, bw_start, bw_end, num_bands)
     
     return detected_command
 
-# Ruta al archivo de audio que quieres procesar
 audio_path = "path_to_test_file.wav"
-
-# Encontrar el comando correspondiente
 command = find_command(audio_path, vector_referencias, fs, bw_start, bw_end, num_bands)
 print(f"El comando detectado es: {command}")

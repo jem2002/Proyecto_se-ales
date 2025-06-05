@@ -4,7 +4,6 @@ from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
-# Función para extraer características de una imagen
 def extract_features(image):
     # Convertir la imagen a escala de grises usando promedio
     gray = np.mean(image, axis=2).astype(np.uint8)

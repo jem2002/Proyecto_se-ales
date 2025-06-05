@@ -4,11 +4,9 @@ import math
 import struct
 import numpy as np
 
-# Constantes
 CHUNK = 1024
 RATE = 44100
 
-# Funciones para cálculo de coeficientes y aplicación del filtro
 def calculate_coefficients(f1, f2, fs):
     f0 = math.sqrt(f1 * f2)
     bw = f2 - f1
@@ -48,7 +46,6 @@ def apply_filter(frames, b, a, chunk_size):
 
     return filtered_frames
 
-# Función principal para recorrer las carpetas y procesar los audios
 def process_folder(input_folder):
     output_folder = os.path.join(input_folder, "filtered_recordings")
 
@@ -57,19 +54,11 @@ def process_folder(input_folder):
             if file.endswith(".wav"):
                 input_path = os.path.join(root, file)
 
-                # Calcular la ruta relativa desde la carpeta base
                 relative_path = os.path.relpath(root,input_folder)
-                
-                # Crear la ruta correspondiente en la carpeta de salida
                 output_path_folder = os.path.join(output_folder, relative_path)
-
-                # Asegúrate de que la carpeta exista
                 os.makedirs(output_path_folder, exist_ok=True)
-
-                # Crear la ruta completa para el archivo filtrado
                 output_path = os.path.join(output_path_folder, file)
 
-                # Procesar el archivo de audio
                 process_audio(input_path, output_path)
 
 def process_audio(input_path, output_path):
@@ -81,7 +70,6 @@ def process_audio(input_path, output_path):
     b, a = calculate_coefficients(300, 3400, RATE)
     filtered_frames = apply_filter([frames], b, a, CHUNK)
 
-    # Asegúrate de que el directorio exista antes de guardar
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     with wave.open(output_path, 'wb') as wf:
@@ -92,6 +80,5 @@ def process_audio(input_path, output_path):
 
     print(f"Procesado y guardado: {output_path}")
 
-# Carpeta de entrada
-input_folder = "command_recordings"  # Cambia esta ruta según la ubicación de tus audios
+input_folder = "command_recordings"
 process_folder(input_folder)

@@ -1,7 +1,7 @@
 import wave
 import pyaudio
 import os
-import time  # Para implementar la pausa
+import time
 
 def record_audio(file_name, duration=2):
     """
